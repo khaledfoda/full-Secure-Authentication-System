@@ -21,6 +21,21 @@ exports.getProfile = async (req, res) => {
 exports.register = async (req, res) => {
   const { name, email, password, role } = req.body;
 
+  if (!password || password.length < 8) {
+    return res.status(400).json({ message: "Password must be at least 8 characters" });
+  }
+
+  const hasUpperCase = /[A-Z]/.test(password);
+  const hasLowerCase = /[a-z]/.test(password);
+  const hasNumbers = /[0-9]/.test(password);
+  const hasSpecial = /[*\/@]/.test(password);
+
+  if (!hasUpperCase || !hasLowerCase || !hasNumbers || !hasSpecial) {
+    return res.status(400).json({ 
+      message: "Password must contain: capital letter, small letter, number, and special character (* / @)" 
+    });
+  }
+
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -113,7 +128,8 @@ exports.verify2FA = (req, res) => {
     res.json({
       message: "Login successful",
       token: jwtToken,
-      role: user.role
+      role: user.role,
+      userId: user.id
     });
   });
 };

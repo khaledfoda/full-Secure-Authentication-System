@@ -15,13 +15,19 @@
       <button type="submit" id="submitBtn">Upload & Encrypt</button>
     </form>
     <div id="result" style="margin-top: 20px;"></div>
-    <p class="link"><a href="documents.html">View Documents</a> | <a href="user.html">Dashboard</a></p>
+    <p class="link">
+      <a href="documents.html">View Documents</a> | 
+      <a href="#" id="dashboardLink">Dashboard</a>
+    </p>
   </div>
   <script>
     const token = localStorage.getItem("token");
+    const role = localStorage.getItem("role");
     if (!token) {
       window.location.href = "login.html";
     }
+    const dashboards = { admin: "admin.html", manager: "manager.html", user: "user.html" };
+    document.getElementById("dashboardLink").href = dashboards[role] || "user.html";
 
     document.getElementById("uploadForm").addEventListener("submit", async (e) => {
       e.preventDefault();

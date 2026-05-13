@@ -15,8 +15,19 @@ cert.validity.notBefore = new Date();
 cert.validity.notAfter = new Date();
 cert.validity.notAfter.setFullYear(cert.validity.notBefore.getFullYear() + 1);
 
-cert.setSubject([{ name: "commonName", value: "localhost" }]);
-cert.setIssuer([{ name: "commonName", value: "localhost" }]);
+cert.setSubject([
+  { name: "commonName", value: "192.168.56.1" },
+  { name: "subjectAltName", value: "IP:192.168.56.1" }
+]);
+cert.setIssuer([{ name: "commonName", value: "192.168.56.1" }]);
+cert.setExtensions([
+  {
+    name: "subjectAltName",
+    altNames: [
+      { type: 7, ip: "192.168.56.1" }
+    ]
+  }
+]);
 
 cert.publicKey = keypair.publicKey;
 
@@ -28,6 +39,6 @@ const certPem = forge.pki.certificateToPem(cert);
 fs.writeFileSync(path.join(keysDir, "server.key"), privateKeyPem);
 fs.writeFileSync(path.join(keysDir, "server.cert"), certPem);
 
-console.log("SSL certificates generated successfully!");
+console.log("SSL certificates generated with IP: 192.168.56.1");
 console.log("Run: node app.js");
-console.log("Open: https://localhost:3001/");
+console.log("Access from network: https://192.168.56.1:3001/");

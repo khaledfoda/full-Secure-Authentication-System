@@ -148,7 +148,7 @@ exports.verifyDocument = (req, res) => {
   const { id } = req.params;
 
   const query = `
-    SELECT d.*, u.name as user_name
+    SELECT d.*, u.name as user_name, d.user_id
     FROM documents d
     JOIN users u ON d.user_id = u.id
     WHERE d.id = ?

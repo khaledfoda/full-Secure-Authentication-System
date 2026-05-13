@@ -1,7 +1,6 @@
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const passport = require("passport");
 const db = require("../config/db");
-const speakeasy = require("speakeasy");
 
 passport.use(
   new GoogleStrategy(
@@ -18,19 +17,17 @@ passport.use(
         if (err) return done(err);
 
         if (users.length > 0) {
-          return done(null, { ...users[0], isGoogleUser: true });
+          return done(null, users[0]);
         }
-
-        const secret = speakeasy.generateSecret({ length: 20 });
 
         db.query(
           "INSERT INTO users (name, email, password, role, twofa_secret) VALUES (?, ?, ?, ?, ?)",
-          [name, email, "", "user", secret.base32],
+          [name, email, "", "user", "TEMP"],
           (err, result) => {
             if (err) return done(err);
 
             db.query("SELECT * FROM users WHERE id = ?", [result.insertId], (err, newUser) => {
-              return done(null, { ...newUser[0], isGoogleUser: true });
+              return done(null, { ...newUser[0], isNewGoogleUser: true });
             });
           }
         );

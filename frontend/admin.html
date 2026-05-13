@@ -15,26 +15,9 @@
       <p><strong>Role:</strong> <span id="userRole"></span></p>
     </div>
     
-    <h3>User Management</h3>
-    <div id="usersSection">
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Role</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody id="usersList"></tbody>
-      </table>
-    </div>
-    
-    <h3>Document Management</h3>
     <div class="buttons-row">
       <button onclick="window.location.href='admin-panel.html'">Manage Documents</button>
-      <button onclick="window.location.href='upload.html'">Upload Document</button>
+      <button onclick="window.location.href='user-management.html'">User Management</button>
       <button onclick="window.location.href='profile.html'">Profile</button>
       <button class="secondary" onclick="logout()">Logout</button>
     </div>
@@ -50,34 +33,6 @@
   } else {
     document.getElementById("userData").textContent = userId || "Not found";
     document.getElementById("userRole").textContent = role;
-    loadUsers();
-  }
-
-  async function loadUsers() {
-    const res = await fetch("/api/auth/admin/users", {
-      headers: { "Authorization": "Bearer " + token }
-    });
-    const data = await res.json();
-    document.getElementById("usersList").innerHTML = data.users.map(u => `
-      <tr>
-        <td>${u.id}</td>
-        <td>${u.name}</td>
-        <td>${u.email}</td>
-        <td>${u.role}</td>
-        <td>
-          ${data.canEdit ? `<button class="btn-delete" onclick="deleteUser(${u.id})">Delete</button>` : ""}
-        </td>
-      </tr>
-    `).join("");
-  }
-
-  async function deleteUser(id) {
-    if (!confirm("Delete this user?")) return;
-    await fetch(`/api/auth/admin/users/${id}`, {
-      method: "DELETE",
-      headers: { "Authorization": "Bearer " + token }
-    });
-    loadUsers();
   }
 
   function logout() {

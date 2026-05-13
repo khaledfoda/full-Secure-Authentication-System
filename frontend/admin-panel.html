@@ -9,7 +9,14 @@
     <div class="dashboard-header">
       <h2>Admin Panel - Document Management</h2>
     </div>
+    <h3>Verify by ID</h3>
+    <div style="margin-bottom: 20px;">
+      <input type="number" id="verifyById" placeholder="Enter Document ID" style="padding: 20px; font-size: 24px; width: 100%; box-sizing: border-box;">
+      <button onclick="verifyByIdInput()" style="margin-top: 10px; padding: 15px 30px; font-size: 16px; width: 100%;">Verify</button>
+    </div>
+    
     <h3>All Documents</h3>
+    <div id="verifyResult" style="margin: 20px 0;"></div>
     <table>
       <thead>
         <tr>
@@ -24,14 +31,19 @@
       <tbody id="docsList"></tbody>
     </table>
     <div class="buttons-row">
-      <button onclick="window.location.href='upload.html'">Upload Document</button>
-      <button onclick="window.location.href='documents.html'">My Documents</button>
+      <button class="secondary" id="dashboardBtn">Dashboard</button>
       <button class="back-btn" onclick="window.location.href='login.html'">Logout</button>
     </div>
   </div>
   <script>
     const token = localStorage.getItem("token");
+    const role = localStorage.getItem("role");
     if (!token) window.location.href = "login.html";
+
+    const dashboards = { admin: "admin.html", manager: "manager.html", user: "user.html" };
+    document.getElementById("dashboardBtn").onclick = () => {
+      window.location.href = dashboards[role] || "admin.html";
+    };
 
     async function loadDocuments() {
       const response = await fetch("/api/documents", {
@@ -55,7 +67,33 @@
     }
 
     async function verifyDoc(id) {
-      window.location.href = `verify.html?docId=${id}`;
+      const response = await fetch(`/api/documents/verify/${id}`, {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        document.getElementById("verifyResult").innerHTML = 
+          `<p style="color: red;">${data.message}</p>`;
+        return;
+      }
+
+      document.getElementById("verifyResult").innerHTML = `
+        <div class="user-info">
+          <h3>Document: ${data.document.original_name}</h3>
+          <p><strong>Uploaded by:</strong> ${data.document.user_name}</p>
+          <p><strong>Upload Date:</strong> ${new Date(data.document.uploaded_at).toLocaleString()}</p>
+          <hr style="margin: 15px 0;">
+          <h3>Integrity Check (SHA-256)</h3>
+          <p><strong>Hash Match:</strong> <span style="color: ${data.integrity.hashMatch ? 'green' : 'red'}">${data.integrity.hashMatch ? 'VALID' : 'INVALID'}</span></p>
+          <p><strong>Current Hash:</strong> <code style="word-break: break-all; font-size: 11px;">${data.integrity.currentHash}</code></p>
+          <p><strong>Stored Hash:</strong> <code style="word-break: break-all; font-size: 11px;">${data.integrity.storedHash}</code></p>
+          <hr style="margin: 15px 0;">
+          <h3>Digital Signature</h3>
+          <p><strong>Signature Valid:</strong> <span style="color: ${data.signature.valid ? 'green' : 'red'}">${data.signature.valid ? 'VALID' : 'INVALID'}</span></p>
+          <button onclick="document.getElementById('verifyResult').innerHTML=''" style="margin-top:10px;">Close</button>
+        </div>
+      `;
     }
 
     async function deleteDoc(id) {
@@ -68,6 +106,13 @@
     }
 
     loadDocuments();
+
+    function verifyByIdInput() {
+      const id = document.getElementById("verifyById").value;
+      if (id) {
+        verifyDoc(id);
+      }
+    }
   </script>
 </body>
 </html>

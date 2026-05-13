@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>User Management</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="dashboard-container">
+    <div class="dashboard-header">
+      <h2>User Management</h2>
+    </div>
+    
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Role</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="usersList"></tbody>
+    </table>
+    
+    <div class="buttons-row">
+      <button class="secondary" id="dashboardBtn">Dashboard</button>
+      <button class="back-btn" onclick="window.location.href='login.html'">Logout</button>
+    </div>
+  </div>
+
+  <script>
+    const token = localStorage.getItem("token");
+    const role = localStorage.getItem("role");
+    
+    if (!token || role !== "admin") {
+      window.location.href = "login.html";
+    }
+
+    const dashboards = { admin: "admin.html", manager: "manager.html", user: "user.html" };
+    document.getElementById("dashboardBtn").onclick = () => {
+      window.location.href = dashboards[role] || "admin.html";
+    };
+
+    async function loadUsers() {
+      const res = await fetch("/api/auth/admin/users", {
+        headers: { "Authorization": "Bearer " + token }
+      });
+      const data = await res.json();
+      
+      document.getElementById("usersList").innerHTML = data.users.map(u => `
+        <tr>
+          <td>${u.id}</td>
+          <td><input type="text" id="name-${u.id}" value="${u.name}" onchange="updateField(${u.id}, 'name', this.value)"></td>
+          <td><input type="email" id="email-${u.id}" value="${u.email}" onchange="updateField(${u.id}, 'email', this.value)"></td>
+          <td>
+            <select id="role-${u.id}" onchange="changeRole(${u.id}, this.value, '${u.role}')">
+              <option value="user" ${u.role === 'user' ? 'selected' : ''}>User</option>
+              <option value="manager" ${u.role === 'manager' ? 'selected' : ''}>Manager</option>
+              <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Admin</option>
+            </select>
+          </td>
+          <td>
+            <button class="btn-delete" onclick="deleteUser(${u.id})">Delete</button>
+          </td>
+        </tr>
+      `).join("");
+    }
+
+    async function updateField(id, field, value) {
+      const res = await fetch(`/api/auth/admin/users/${id}`, {
+        method: "PUT",
+        headers: {
+          "Authorization": "Bearer " + token,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ [field]: value })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.message || "Failed to update");
+        loadUsers();
+      }
+    }
+
+    async function changeRole(id, newRole, oldRole) {
+      if (!confirm(`Change role from "${oldRole}" to "${newRole}"?`)) {
+        loadUsers();
+        return;
+      }
+      const res = await fetch(`/api/auth/admin/users/${id}/role`, {
+        method: "PUT",
+        headers: {
+          "Authorization": "Bearer " + token,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ role: newRole })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        alert("Role updated successfully!");
+      } else {
+        alert(data.message || "Failed to update role");
+        loadUsers();
+      }
+    }
+
+    async function deleteUser(id) {
+      if (!confirm("Delete this user?")) return;
+      await fetch(`/api/auth/admin/users/${id}`, {
+        method: "DELETE",
+        headers: { "Authorization": "Bearer " + token }
+      });
+      loadUsers();
+    }
+
+    loadUsers();
+  </script>
+</body>
+</html>

@@ -27,6 +27,7 @@ document.getElementById("verifyForm").addEventListener("submit", async (e) => {
 
   localStorage.setItem("token", result.token);
   localStorage.setItem("role", result.role);
+  localStorage.setItem("userId", result.userId || localStorage.getItem("userId"));
 
   const redirectPage = {
     admin: "admin.html",

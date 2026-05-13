@@ -9,20 +9,37 @@
     <div class="dashboard-header">
       <h2>Verify Document Integrity</h2>
     </div>
+    
     <div class="form-group">
       <label for="docId">Enter Document ID</label>
-      <input type="number" id="docId" placeholder="Document ID">
+      <input type="number" id="docId" placeholder="Document ID" style="padding: 15px; font-size: 16px;">
     </div>
     <button onclick="verifyDoc()">Verify</button>
+    
     <div id="result" style="margin-top: 20px;"></div>
-    <button class="back-btn" onclick="window.location.href='documents.html'">Back</button>
+    <div class="buttons-row">
+      <button class="secondary" id="dashboardBtn">Dashboard</button>
+      <button class="back-btn" onclick="window.location.href='documents.html'">Back</button>
+    </div>
   </div>
   <script>
     const token = localStorage.getItem("token");
+    const role = localStorage.getItem("role");
+    const userId = localStorage.getItem("userId");
     if (!token) window.location.href = "login.html";
+    
+    const dashboards = { admin: "admin.html", manager: "manager.html", user: "user.html" };
+    document.getElementById("dashboardBtn").onclick = () => {
+      window.location.href = dashboards[role] || "user.html";
+    };
 
     async function verifyDoc() {
       const id = document.getElementById("docId").value;
+      if (!id) {
+        document.getElementById("result").innerHTML = `<p style="color: red;">Please enter a document ID</p>`;
+        return;
+      }
+      
       const response = await fetch(`/api/documents/verify/${id}`, {
         headers: { "Authorization": `Bearer ${token}` }
       });
@@ -33,6 +50,18 @@
         return;
       }
 
+      console.log("Document data:", data.document);
+      console.log("Current userId from localStorage:", localStorage.getItem("userId"));
+
+      if (role === "user") {
+        const docUserId = parseInt(data.document.user_id);
+        const currentUserId = parseInt(localStorage.getItem("userId"));
+        if (docUserId !== currentUserId) {
+          document.getElementById("result").innerHTML = `<p style="color: red; font-size: 18px;">You cannot verify this document because it doesn't belong to you!</p>`;
+          return;
+        }
+      }
+
       document.getElementById("result").innerHTML = `
         <div class="user-info">
           <h3>Document: ${data.document.original_name}</h3>
@@ -41,8 +70,8 @@
           <hr style="margin: 15px 0;">
           <h3>Integrity Check (SHA-256)</h3>
           <p><strong>Hash Match:</strong> <span style="color: ${data.integrity.hashMatch ? 'green' : 'red'}">${data.integrity.hashMatch ? 'VALID' : 'INVALID'}</span></p>
-          <p><strong>Current Hash:</strong> <code>${data.integrity.currentHash}</code></p>
-          <p><strong>Stored Hash:</strong> <code>${data.integrity.storedHash}</code></p>
+          <p><strong>Current Hash:</strong> <code style="word-break: break-all;">${data.integrity.currentHash}</code></p>
+          <p><strong>Stored Hash:</strong> <code style="word-break: break-all;">${data.integrity.storedHash}</code></p>
           <hr style="margin: 15px 0;">
           <h3>Digital Signature</h3>
           <p><strong>Signature Valid:</strong> <span style="color: ${data.signature.valid ? 'green' : 'red'}">${data.signature.valid ? 'VALID' : 'INVALID'}</span></p>
