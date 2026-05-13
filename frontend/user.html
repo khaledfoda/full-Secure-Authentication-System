@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>User Page</title>
+  <title>User Dashboard</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -13,15 +13,13 @@
     <div class="user-info">
       <p><strong>User ID:</strong> <span id="userData"></span></p>
       <p><strong>Role:</strong> <span id="userRole"></span></p>
-      <p><strong>JWT:</strong> <span id="jwtToken" style="word-break: break-all; font-size: 12px;"></span></p>
     </div>
     
-    <h3>Welcome Message</h3>
-    <div class="user-info">
-      <p id="apiResponse"></p>
-    </div>
-    
+    <h3>Document Management</h3>
     <div class="buttons-row">
+      <button onclick="window.location.href='upload.html'">Upload Document</button>
+      <button onclick="window.location.href='documents.html'">My Documents</button>
+      <button onclick="window.location.href='verify.html'">Verify Document</button>
       <button onclick="window.location.href='profile.html'">Profile</button>
       <button class="secondary" onclick="logout()">Logout</button>
     </div>
@@ -33,32 +31,17 @@
   const role = localStorage.getItem("role");
 
   if (!token || role !== "user") {
-    document.body.innerHTML = '<div class="dashboard-container forbidden"><h1>Forbidden</h1><p>You do not have access to this page.</p><button onclick="window.location.href=\'login.html\'">Login</button></div>';
+    window.location.href = "login.html";
   } else {
     document.getElementById("userData").textContent = userId || "Not found";
     document.getElementById("userRole").textContent = role;
-    document.getElementById("jwtToken").textContent = token;
+  }
 
-    async function getUserData() {
-      const res = await fetch("http://localhost:3000/api/user", {
-        headers: { "Authorization": "Bearer " + token }
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        document.body.innerHTML = '<div class="dashboard-container forbidden"><h1>Forbidden</h1><p>' + (data.message || "Access denied") + '</p><button onclick="window.location.href=\'login.html\'">Login</button></div>';
-        return;
-      }
-      document.getElementById("apiResponse").textContent = data.message;
-    }
-
-    function logout() {
-      localStorage.removeItem("token");
-      localStorage.removeItem("userId");
-      localStorage.removeItem("role");
-      window.location.href = "login.html";
-    }
-
-    getUserData();
+  function logout() {
+    localStorage.removeItem("token");
+    localStorage.removeItem("userId");
+    localStorage.removeItem("role");
+    window.location.href = "login.html";
   }
   </script>
 </body>

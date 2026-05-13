@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Admin Page</title>
+  <title>Admin Dashboard</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -13,15 +13,28 @@
     <div class="user-info">
       <p><strong>User ID:</strong> <span id="userData"></span></p>
       <p><strong>Role:</strong> <span id="userRole"></span></p>
-      <p><strong>JWT:</strong> <span id="jwtToken" style="word-break: break-all; font-size: 12px;"></span></p>
     </div>
     
-    <h3>Welcome Message</h3>
-    <div class="user-info">
-      <p id="apiResponse"></p>
+    <h3>User Management</h3>
+    <div id="usersSection">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="usersList"></tbody>
+      </table>
     </div>
     
+    <h3>Document Management</h3>
     <div class="buttons-row">
+      <button onclick="window.location.href='admin-panel.html'">Manage Documents</button>
+      <button onclick="window.location.href='upload.html'">Upload Document</button>
       <button onclick="window.location.href='profile.html'">Profile</button>
       <button class="secondary" onclick="logout()">Logout</button>
     </div>
@@ -33,32 +46,45 @@
   const role = localStorage.getItem("role");
 
   if (!token || role !== "admin") {
-    document.body.innerHTML = '<div class="dashboard-container forbidden"><h1>Forbidden</h1><p>You do not have access to this page.</p><button onclick="window.location.href=\'login.html\'">Login</button></div>';
+    window.location.href = "login.html";
   } else {
     document.getElementById("userData").textContent = userId || "Not found";
     document.getElementById("userRole").textContent = role;
-    document.getElementById("jwtToken").textContent = token;
+    loadUsers();
+  }
 
-    async function getAdminData() {
-      const res = await fetch("http://localhost:3000/api/admin", {
-        headers: { "Authorization": "Bearer " + token }
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        document.body.innerHTML = '<div class="dashboard-container forbidden"><h1>Forbidden</h1><p>' + (data.message || "Access denied") + '</p><button onclick="window.location.href=\'login.html\'">Login</button></div>';
-        return;
-      }
-      document.getElementById("apiResponse").textContent = data.message;
-    }
+  async function loadUsers() {
+    const res = await fetch("/api/auth/admin/users", {
+      headers: { "Authorization": "Bearer " + token }
+    });
+    const data = await res.json();
+    document.getElementById("usersList").innerHTML = data.users.map(u => `
+      <tr>
+        <td>${u.id}</td>
+        <td>${u.name}</td>
+        <td>${u.email}</td>
+        <td>${u.role}</td>
+        <td>
+          ${data.canEdit ? `<button class="btn-delete" onclick="deleteUser(${u.id})">Delete</button>` : ""}
+        </td>
+      </tr>
+    `).join("");
+  }
 
-    function logout() {
-      localStorage.removeItem("token");
-      localStorage.removeItem("userId");
-      localStorage.removeItem("role");
-      window.location.href = "login.html";
-    }
+  async function deleteUser(id) {
+    if (!confirm("Delete this user?")) return;
+    await fetch(`/api/auth/admin/users/${id}`, {
+      method: "DELETE",
+      headers: { "Authorization": "Bearer " + token }
+    });
+    loadUsers();
+  }
 
-    getAdminData();
+  function logout() {
+    localStorage.removeItem("token");
+    localStorage.removeItem("userId");
+    localStorage.removeItem("role");
+    window.location.href = "login.html";
   }
   </script>
 </body>

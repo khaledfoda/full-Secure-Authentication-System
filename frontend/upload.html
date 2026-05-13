@@ -12,10 +12,10 @@
         <label for="file">Select File</label>
         <input type="file" id="file" required>
       </div>
-      <button type="submit">Upload & Encrypt</button>
+      <button type="submit" id="submitBtn">Upload & Encrypt</button>
     </form>
     <div id="result" style="margin-top: 20px;"></div>
-    <p class="link"><a href="documents.html">View Documents</a></p>
+    <p class="link"><a href="documents.html">View Documents</a> | <a href="user.html">Dashboard</a></p>
   </div>
   <script>
     const token = localStorage.getItem("token");
@@ -25,24 +25,64 @@
 
     document.getElementById("uploadForm").addEventListener("submit", async (e) => {
       e.preventDefault();
+      
       const fileInput = document.getElementById("file");
+      const maxSize = 5 * 1024 * 1024;
+      
+      if (!fileInput.files[0]) {
+        document.getElementById("result").innerHTML = '<p style="color: red;">Please select a file</p>';
+        return;
+      }
+
+      const ext = fileInput.files[0].name.split('.').pop().toLowerCase();
+      const allowedExts = ["pdf", "docx", "ppt", "pptx"];
+      
+      if (!allowedExts.includes(ext)) {
+        document.getElementById("result").innerHTML = '<p style="color: red;">Only PDF, DOCX, PPT, PPTX files are allowed</p>';
+        return;
+      }
+
+      if (fileInput.files[0].size > maxSize) {
+        document.getElementById("result").innerHTML = '<p style="color: red;">File size must be less than 5MB</p>';
+        return;
+      }
+
       const formData = new FormData();
       formData.append("file", fileInput.files[0]);
 
-      const response = await fetch("/api/documents/upload", {
-        method: "POST",
-        headers: { "Authorization": `Bearer ${token}` },
-        body: formData
-      });
+      const submitBtn = document.getElementById("submitBtn");
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Uploading...";
 
-      const data = await response.json();
-      document.getElementById("result").innerHTML = `
-        <div class="user-info">
-          <p><strong>File:</strong> ${data.originalName}</p>
-          <p><strong>Hash (SHA-256):</strong> ${data.hash}</p>
-          <p style="color: #11998e;">File encrypted and stored successfully!</p>
-        </div>
-      `;
+      try {
+        const response = await fetch("/api/documents/upload", {
+          method: "POST",
+          headers: { "Authorization": `Bearer ${token}` },
+          body: formData
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          document.getElementById("result").innerHTML = `<p style="color: red;">Error: ${data.message || data.error || "Upload failed"}</p>`;
+        } else {
+          document.getElementById("result").innerHTML = `
+            <div class="user-info">
+              <p><strong>File:</strong> ${data.originalName}</p>
+              <p><strong>Document ID:</strong> ${data.documentId}</p>
+              <p><strong>Hash (SHA-256):</strong></p>
+              <code style="word-break: break-all; font-size: 11px;">${data.hash}</code>
+              <p style="color: #11998e; margin-top: 15px;">File encrypted and stored successfully!</p>
+            </div>
+          `;
+          fileInput.value = "";
+        }
+      } catch (error) {
+        document.getElementById("result").innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+      }
+
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Upload & Encrypt";
     });
   </script>
 </body>

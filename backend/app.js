@@ -11,6 +11,8 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(require("express-session")({ secret: "session-secret", resave: false, saveUninitialized: false }));
+const passport = require("passport");
+require("./config/passport");
 app.use(passport.initialize());
 app.use(passport.session());
 
