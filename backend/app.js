@@ -10,6 +10,9 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use(require("express-session")({ secret: "session-secret", resave: false, saveUninitialized: false }));
+app.use(passport.initialize());
+app.use(passport.session());
 
 app.use(express.static(path.join(__dirname, "../frontend")));
 

@@ -1,11 +1,29 @@
 const express = require("express");
 const router = express.Router();
+const passport = require("passport");
+require("../config/passport");
 
 const authController = require("../controllers/authController");
 const authMiddleware = require("../middleware/authMiddleware");
 const db = require("../config/db");
 
 router.post("/register", authController.register);
+
+router.get("/google", passport.authenticate("google", { scope: ["profile", "email"] }));
+
+router.get(
+  "/google/callback",
+  passport.authenticate("google", { failureRedirect: "/login.html?error=oauth" }),
+  (req, res) => {
+    const jwt = require("jsonwebtoken");
+    const token = jwt.sign(
+      { id: req.user.id, role: req.user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+    res.redirect(`/dashboard.html?token=${token}&role=${req.user.role}`);
+  }
+);
 router.post("/login", authController.login);
 router.post("/verify-2fa", authController.verify2FA);
 router.get("/profile", authMiddleware, authController.getProfile);
