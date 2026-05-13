@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Verify Document</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="dashboard-container">
+    <div class="dashboard-header">
+      <h2>Verify Document Integrity</h2>
+    </div>
+    <div class="form-group">
+      <label for="docId">Enter Document ID</label>
+      <input type="number" id="docId" placeholder="Document ID">
+    </div>
+    <button onclick="verifyDoc()">Verify</button>
+    <div id="result" style="margin-top: 20px;"></div>
+    <button class="back-btn" onclick="window.location.href='documents.html'">Back</button>
+  </div>
+  <script>
+    const token = localStorage.getItem("token");
+    if (!token) window.location.href = "login.html";
+
+    async function verifyDoc() {
+      const id = document.getElementById("docId").value;
+      const response = await fetch(`/api/documents/verify/${id}`, {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        document.getElementById("result").innerHTML = `<p style="color: red;">${data.message}</p>`;
+        return;
+      }
+
+      document.getElementById("result").innerHTML = `
+        <div class="user-info">
+          <h3>Document: ${data.document.original_name}</h3>
+          <p><strong>Uploaded by:</strong> ${data.document.user_name}</p>
+          <p><strong>Upload Date:</strong> ${new Date(data.document.uploaded_at).toLocaleString()}</p>
+          <hr style="margin: 15px 0;">
+          <h3>Integrity Check (SHA-256)</h3>
+          <p><strong>Hash Match:</strong> <span style="color: ${data.integrity.hashMatch ? 'green' : 'red'}">${data.integrity.hashMatch ? 'VALID' : 'INVALID'}</span></p>
+          <p><strong>Current Hash:</strong> <code>${data.integrity.currentHash}</code></p>
+          <p><strong>Stored Hash:</strong> <code>${data.integrity.storedHash}</code></p>
+          <hr style="margin: 15px 0;">
+          <h3>Digital Signature</h3>
+          <p><strong>Signature Valid:</strong> <span style="color: ${data.signature.valid ? 'green' : 'red'}">${data.signature.valid ? 'VALID' : 'INVALID'}</span></p>
+        </div>
+      `;
+    }
+  </script>
+</body>
+</html>

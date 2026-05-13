@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Admin Panel</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="dashboard-container">
+    <div class="dashboard-header">
+      <h2>Admin Panel - Document Management</h2>
+    </div>
+    <h3>All Documents</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Filename</th>
+          <th>User</th>
+          <th>Email</th>
+          <th>Uploaded</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="docsList"></tbody>
+    </table>
+    <div class="buttons-row">
+      <button onclick="window.location.href='upload.html'">Upload Document</button>
+      <button onclick="window.location.href='documents.html'">My Documents</button>
+      <button class="back-btn" onclick="window.location.href='login.html'">Logout</button>
+    </div>
+  </div>
+  <script>
+    const token = localStorage.getItem("token");
+    if (!token) window.location.href = "login.html";
+
+    async function loadDocuments() {
+      const response = await fetch("/api/documents", {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      const data = await response.json();
+      
+      document.getElementById("docsList").innerHTML = data.documents.map(doc => `
+        <tr>
+          <td>${doc.id}</td>
+          <td>${doc.original_name}</td>
+          <td>${doc.user_name || "N/A"}</td>
+          <td>${doc.user_email || "N/A"}</td>
+          <td>${new Date(doc.uploaded_at).toLocaleString()}</td>
+          <td>
+            <button class="btn-edit" onclick="verifyDoc(${doc.id})">Verify</button>
+            <button class="btn-delete" onclick="deleteDoc(${doc.id})">Delete</button>
+          </td>
+        </tr>
+      `).join("");
+    }
+
+    async function verifyDoc(id) {
+      window.location.href = `verify.html?docId=${id}`;
+    }
+
+    async function deleteDoc(id) {
+      if (!confirm("Delete this document?")) return;
+      await fetch(`/api/documents/${id}`, {
+        method: "DELETE",
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      loadDocuments();
+    }
+
+    loadDocuments();
+  </script>
+</body>
+</html>
