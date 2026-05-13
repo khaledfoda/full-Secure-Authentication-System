@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Profile</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    #usersSection { display: none; }
+  </style>
+</head>
+<body>
+  <div class="dashboard-container">
+    <div class="dashboard-header">
+      <h2>Profile</h2>
+    </div>
+    
+    <div id="profileData" class="user-info"></div>
+    
+    <div id="usersSection">
+      <h3 id="usersTitle"></h3>
+      <table id="usersTable">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Role</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    
+    <button id="backBtn" class="back-btn">Back</button>
+  </div>
+
+  <script>
+  const token = localStorage.getItem("token");
+  const role = localStorage.getItem("role");
+
+  const validRoles = ["user", "admin", "manager"];
+  if (!token || !validRoles.includes(role)) {
+    document.body.innerHTML = '<div class="dashboard-container forbidden"><h1>Forbidden</h1><p>Please login first.</p><button onclick="window.location.href=\'login.html\'">Login</button></div>';
+  }
+
+  document.getElementById("backBtn").onclick = function() {
+    const pages = { user: "user.html", admin: "admin.html", manager: "manager.html" };
+    window.location.href = pages[role] || "login.html";
+  };
+
+  async function loadProfile() {
+    const res = await fetch("http://localhost:3000/api/auth/profile", {
+      headers: { "Authorization": "Bearer " + token }
+    });
+    const data = await res.json();
+    
+    if (!res.ok) {
+      document.body.innerHTML = '<div class="dashboard-container forbidden"><h1>Forbidden</h1><p>' + (data.message || "Access denied") + '</p></div>';
+      return;
+    }
+    
+    document.getElementById("profileData").innerHTML = `
+      <p><strong>ID:</strong> ${data.user.id}</p>
+      <p><strong>Name:</strong> ${data.user.name}</p>
+      <p><strong>Email:</strong> ${data.user.email}</p>
+      <p><strong>Role:</strong> ${data.user.role}</p>
+    `;
+  }
+
+  async function loadUsers() {
+    if (role !== "admin" && role !== "manager") return;
+    
+    document.getElementById("usersSection").style.display = "block";
+    document.getElementById("usersTitle").textContent = "All Users";
+    
+    const res = await fetch("http://localhost:3000/api/auth/admin/users", {
+      headers: { "Authorization": "Bearer " + token }
+    });
+    const data = await res.json();
+    
+    if (!res.ok) {
+      alert(data.message || "Failed to load users");
+      return;
+    }
+    
+    const tbody = document.querySelector("#usersTable tbody");
+    tbody.innerHTML = "";
+    
+    const canEdit = data.canEdit;
+    
+    if (canEdit) {
+      document.querySelector("#usersTable thead tr").innerHTML = '<th>ID</th><th>Name</th><th>Email</th><th>Role</th><th>Actions</th>';
+    } else {
+      document.querySelector("#usersTable thead tr").innerHTML = '<th>ID</th><th>Name</th><th>Email</th><th>Role</th>';
+    }
+    
+    data.users.forEach(user => {
+      const actions = canEdit ? `
+        <button class="btn-edit" onclick="saveUser(${user.id})">Save</button>
+        <button class="btn-delete" onclick="deleteUser(${user.id})">Delete</button>
+      ` : '';
+      
+      const actionCell = canEdit ? `<td>${actions}</td>` : '';
+      
+      const nameCell = canEdit 
+        ? `<input type="text" id="name-${user.id}" value="${user.name}" class="table-input">`
+        : `<td>${user.name}</td>`;
+        
+      const emailCell = canEdit 
+        ? `<input type="email" id="email-${user.id}" value="${user.email}" class="table-input">`
+        : `<td>${user.email}</td>`;
+      
+      tbody.innerHTML += `
+        <tr>
+          <td>${user.id}</td>
+          ${nameCell}
+          ${emailCell}
+          <td>${user.role}</td>
+          ${actionCell}
+        </tr>
+      `;
+    });
+  }
+
+  async function saveUser(id) {
+    const name = document.getElementById(`name-${id}`).value;
+    const email = document.getElementById(`email-${id}`).value;
+    
+    const res = await fetch(`http://localhost:3000/api/auth/admin/users/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + token
+      },
+      body: JSON.stringify({ name, email })
+    });
+    
+    const data = await res.json();
+    if (res.ok) {
+      document.getElementById(`name-${id}`).style.borderColor = "#27ae60";
+      document.getElementById(`email-${id}`).style.borderColor = "#27ae60";
+      setTimeout(() => {
+        document.getElementById(`name-${id}`).style.borderColor = "#e0e0e0";
+        document.getElementById(`email-${id}`).style.borderColor = "#e0e0e0";
+      }, 2000);
+    }
+  }
+
+  async function deleteUser(id) {
+    if (!confirm("Are you sure you want to delete this user?")) return;
+    
+    const res = await fetch(`http://localhost:3000/api/auth/admin/users/${id}`, {
+      method: "DELETE",
+      headers: { "Authorization": "Bearer " + token }
+    });
+    
+    if (res.ok) loadUsers();
+  }
+
+  loadProfile();
+  loadUsers();
+  </script>
+</body>
+</html>

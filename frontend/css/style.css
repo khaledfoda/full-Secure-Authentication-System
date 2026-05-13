@@ -1,0 +1,289 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.container {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  padding: 40px;
+  width: 100%;
+  max-width: 450px;
+}
+
+h2 {
+  color: #11998e;
+  margin-bottom: 30px;
+  text-align: center;
+  font-size: 28px;
+}
+
+h3 {
+  color: #333;
+  margin: 20px 0 15px;
+  font-size: 18px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+label {
+  display: block;
+  margin-bottom: 8px;
+  color: #555;
+  font-weight: 500;
+}
+
+input, select {
+  width: 100%;
+  padding: 14px;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+input:focus, select:focus {
+  outline: none;
+  border-color: #11998e;
+  box-shadow: 0 0 0 3px rgba(17, 153, 142, 0.1);
+}
+
+button {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-bottom: 10px;
+}
+
+button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(17, 153, 142, 0.3);
+}
+
+button.secondary {
+  background: #e0e0e0;
+  color: #555;
+}
+
+button.secondary:hover {
+  background: #d0d0d0;
+}
+
+.link {
+  text-align: center;
+  margin-top: 20px;
+  color: #666;
+}
+
+.link a {
+  color: #11998e;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.link a:hover {
+  text-decoration: underline;
+}
+
+#qrCode {
+  display: block;
+  margin: 20px auto;
+  max-width: 200px;
+}
+
+#qrNote {
+  text-align: center;
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+#qr {
+  display: block;
+  margin: 20px auto;
+  max-width: 200px;
+  border: 5px solid #11998e;
+  border-radius: 10px;
+}
+
+.dashboard-container {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  padding: 40px;
+  width: 100%;
+  max-width: 800px;
+  margin: 20px auto;
+}
+
+.dashboard-header {
+  text-align: center;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.dashboard-header h2 {
+  margin-bottom: 10px;
+}
+
+.user-info {
+  background: #f8fcfb;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  border: 1px solid #e0f2f0;
+}
+
+.user-info p {
+  margin: 8px 0;
+  color: #555;
+}
+
+.user-info strong {
+  color: #11998e;
+}
+
+.buttons-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+
+.buttons-row button {
+  flex: 1;
+  min-width: 120px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+thead {
+  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+  color: white;
+}
+
+th, td {
+  padding: 15px;
+  text-align: left;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+tbody tr:hover {
+  background: #f8fcfb;
+}
+
+tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.btn-edit {
+  background: #11998e;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-right: 5px;
+}
+
+.btn-edit:hover {
+  background: #0d7a6f;
+}
+
+.btn-delete {
+  background: #dc3545;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.btn-delete:hover {
+  background: #c82333;
+}
+
+.back-btn {
+  background: #6c757d;
+  margin-top: 20px;
+}
+
+.back-btn:hover {
+  background: #5a6268;
+}
+
+.forbidden {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.forbidden h1 {
+  color: #dc3545;
+  font-size: 48px;
+  margin-bottom: 20px;
+}
+
+.forbidden p {
+  color: #666;
+  font-size: 18px;
+  margin-bottom: 30px;
+}
+
+@media (max-width: 600px) {
+  .container, .dashboard-container {
+    padding: 20px;
+  }
+  
+  h2 {
+    font-size: 24px;
+  }
+  
+  table {
+    font-size: 14px;
+  }
+  
+  th, td {
+    padding: 10px;
+  }
+  
+  .buttons-row {
+    flex-direction: column;
+  }
+  
+  .buttons-row button {
+    width: 100%;
+  }
+}

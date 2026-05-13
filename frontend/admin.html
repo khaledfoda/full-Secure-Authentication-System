@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Admin Page</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="dashboard-container">
+    <div class="dashboard-header">
+      <h2>Admin Dashboard</h2>
+    </div>
+    
+    <div class="user-info">
+      <p><strong>User ID:</strong> <span id="userData"></span></p>
+      <p><strong>Role:</strong> <span id="userRole"></span></p>
+      <p><strong>JWT:</strong> <span id="jwtToken" style="word-break: break-all; font-size: 12px;"></span></p>
+    </div>
+    
+    <h3>Welcome Message</h3>
+    <div class="user-info">
+      <p id="apiResponse"></p>
+    </div>
+    
+    <div class="buttons-row">
+      <button onclick="window.location.href='profile.html'">Profile</button>
+      <button class="secondary" onclick="logout()">Logout</button>
+    </div>
+  </div>
+
+  <script>
+  const token = localStorage.getItem("token");
+  const userId = localStorage.getItem("userId");
+  const role = localStorage.getItem("role");
+
+  if (!token || role !== "admin") {
+    document.body.innerHTML = '<div class="dashboard-container forbidden"><h1>Forbidden</h1><p>You do not have access to this page.</p><button onclick="window.location.href=\'login.html\'">Login</button></div>';
+  } else {
+    document.getElementById("userData").textContent = userId || "Not found";
+    document.getElementById("userRole").textContent = role;
+    document.getElementById("jwtToken").textContent = token;
+
+    async function getAdminData() {
+      const res = await fetch("http://localhost:3000/api/admin", {
+        headers: { "Authorization": "Bearer " + token }
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        document.body.innerHTML = '<div class="dashboard-container forbidden"><h1>Forbidden</h1><p>' + (data.message || "Access denied") + '</p><button onclick="window.location.href=\'login.html\'">Login</button></div>';
+        return;
+      }
+      document.getElementById("apiResponse").textContent = data.message;
+    }
+
+    function logout() {
+      localStorage.removeItem("token");
+      localStorage.removeItem("userId");
+      localStorage.removeItem("role");
+      window.location.href = "login.html";
+    }
+
+    getAdminData();
+  }
+  </script>
+</body>
+</html>

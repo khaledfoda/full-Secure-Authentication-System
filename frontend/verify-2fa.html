@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Verify 2FA</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="container">
+    <h2>Verify 2FA</h2>
+    <p id="qrNote">Enter the 6-digit code from your authenticator app</p>
+    <form id="verifyForm">
+      <div class="form-group">
+        <label for="token">Verification Code</label>
+        <input type="text" id="token" placeholder="Enter 6-digit code" maxlength="6" required>
+      </div>
+      <button type="submit">Verify</button>
+    </form>
+  </div>
+  <script src="js/verify.js"></script>
+</body>
+</html>
