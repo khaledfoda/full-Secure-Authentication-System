@@ -15,13 +15,17 @@ router.get(
   "/google/callback",
   passport.authenticate("google", { failureRedirect: "/login.html?error=oauth" }),
   (req, res) => {
-    const jwt = require("jsonwebtoken");
-    const token = jwt.sign(
-      { id: req.user.id, role: req.user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: "1h" }
-    );
-    res.redirect(`/dashboard.html?token=${token}&role=${req.user.role}`);
+    if (req.user.twofa_secret && req.user.isGoogleUser) {
+      res.redirect(`/verify-2fa.html?userId=${req.user.id}&google=true`);
+    } else {
+      const jwt = require("jsonwebtoken");
+      const token = jwt.sign(
+        { id: req.user.id, role: req.user.role },
+        process.env.JWT_SECRET,
+        { expiresIn: "1h" }
+      );
+      res.redirect(`/dashboard.html?token=${token}&role=${req.user.role}`);
+    }
   }
 );
 router.post("/login", authController.login);

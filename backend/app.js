@@ -42,23 +42,31 @@ app.get("/api/user", authMiddleware, roleMiddleware(["user"]), (req, res) => {
   res.json({ message: "Welcome User" });
 });
 
-const PORT = process.env.PORT || 3000;
+const HTTP_PORT = 3000;
+const HTTPS_PORT = 3001;
 
 const keyPath = path.join(__dirname, "keys", "server.key");
 const certPath = path.join(__dirname, "keys", "server.cert");
 
 if (fs.existsSync(keyPath) && fs.existsSync(certPath)) {
   const https = require("https");
+  const http = require("http");
+
   const sslOptions = {
     key: fs.readFileSync(keyPath),
     cert: fs.readFileSync(certPath)
   };
-  https.createServer(sslOptions, app).listen(PORT, () => {
-    console.log(`HTTPS Server running on port ${PORT}`);
+
+  http.createServer(app).listen(HTTP_PORT, () => {
+    console.log(`HTTP Server running on http://localhost:${HTTP_PORT}`);
+  });
+
+  https.createServer(sslOptions, app).listen(HTTPS_PORT, () => {
+    console.log(`HTTPS Server running on https://localhost:${HTTPS_PORT}`);
   });
 } else {
-  app.listen(PORT, () => {
-    console.log(`HTTP Server running on port ${PORT}`);
-    console.log("Note: Add SSL certificates to enable HTTPS");
+  app.listen(HTTP_PORT, () => {
+    console.log(`HTTP Server running on http://localhost:${HTTP_PORT}`);
+    console.log("Run: node generate-ssl.js for HTTPS");
   });
 }

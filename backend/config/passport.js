@@ -18,19 +18,19 @@ passport.use(
         if (err) return done(err);
 
         if (users.length > 0) {
-          return done(null, users[0]);
+          return done(null, { ...users[0], isGoogleUser: true });
         }
 
         const secret = speakeasy.generateSecret({ length: 20 });
 
         db.query(
-          "INSERT INTO users (name, email, role, twofa_secret) VALUES (?, ?, ?, ?)",
-          [name, email, "user", secret.base32],
+          "INSERT INTO users (name, email, password, role, twofa_secret) VALUES (?, ?, ?, ?, ?)",
+          [name, email, "", "user", secret.base32],
           (err, result) => {
             if (err) return done(err);
 
             db.query("SELECT * FROM users WHERE id = ?", [result.insertId], (err, newUser) => {
-              return done(null, newUser[0]);
+              return done(null, { ...newUser[0], isGoogleUser: true });
             });
           }
         );
