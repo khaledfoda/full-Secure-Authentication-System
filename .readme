@@ -1,7 +1,7 @@
 Full Secure Authentication System
 
 A secure authentication and document management system built with role-based access control, multi-factor authentication, file encryption, and digital signatures.
-![alt text](image.png)
+
 Features
 Authentication
 Email and password registration with strong password validation:
