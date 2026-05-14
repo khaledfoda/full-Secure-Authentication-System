@@ -40,7 +40,8 @@ exports.register = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const secret = speakeasy.generateSecret({
-      length: 20
+      length: 20,
+      name: email
     });
 
     const query = `

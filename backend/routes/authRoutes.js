@@ -17,42 +17,94 @@ router.get("/google/register", (req, res, next) => {
   passport.authenticate("google", { scope: ["profile", "email"] })(req, res, next);
 });
 
+router.get("/github", passport.authenticate("github", { scope: ["user:email"] }));
+
+router.get("/github/register", (req, res, next) => {
+  const role = req.query.role || "user";
+  req.session.githubRole = role;
+  passport.authenticate("github", { scope: ["user:email"] })(req, res, next);
+});
+
+router.get(
+  "/github/callback",
+  passport.authenticate("github", { failureRedirect: "/login.html?error=oauth" }),
+  (req, res) => {
+    if (!req.user || !req.user.id) {
+      return res.redirect("/login.html?error=oauth");
+    }
+    
+    db.query("SELECT * FROM users WHERE id = ?", [req.user.id], (err, users) => {
+      if (err || users.length === 0) {
+        return res.redirect("/login.html?error=oauth");
+      }
+      
+      const user = users[0];
+      const qrCode = require("qrcode");
+      const speakeasy = require("speakeasy");
+      
+      if (user.twofa_secret === "TEMP" || !user.twofa_secret) {
+        const secret = speakeasy.generateSecret({ 
+          length: 20,
+          name: user.email
+        });
+        
+        db.query("UPDATE users SET role = ?, twofa_secret = ? WHERE id = ?", 
+          [req.session.githubRole || "user", secret.base32, user.id], (err) => {
+          req.session.githubRole = null;
+          
+          qrCode.toDataURL(secret.otpauth_url).then(qr => {
+            res.redirect(`/github-setup.html?userId=${user.id}&qr=${encodeURIComponent(qr)}`);
+          });
+        });
+      } else {
+        res.redirect(`/verify-2fa.html?userId=${user.id}&google=true`);
+      }
+    });
+  }
+);
+
 router.get(
   "/google/callback",
   passport.authenticate("google", { failureRedirect: "/login.html?error=oauth" }),
   (req, res) => {
-    const qrCode = require("qrcode");
-    const speakeasy = require("speakeasy");
-    
-    if (req.user.isNewGoogleUser) {
-      const secret = speakeasy.generateSecret({ length: 20 });
-      
-      db.query("UPDATE users SET role = ?, twofa_secret = ? WHERE id = ?", 
-        [req.session.googleRole || "user", secret.base32, req.user.id], (err) => {
-        req.session.googleRole = null;
-        
-        qrCode.toDataURL(secret.otpauth_url).then(qr => {
-          res.redirect(`/google-setup.html?userId=${req.user.id}&qr=${encodeURIComponent(qr)}`);
-        });
-      });
-    } else if (req.user.twofa_secret && req.user.twofa_secret !== "TEMP") {
-      res.redirect(`/verify-2fa.html?userId=${req.user.id}&google=true`);
-    } else {
-      const secret = speakeasy.generateSecret({ length: 20 });
-      
-      db.query("UPDATE users SET twofa_secret = ? WHERE id = ?", 
-        [secret.base32, req.user.id], (err) => {
-        qrCode.toDataURL(secret.otpauth_url).then(qr => {
-          res.redirect(`/google-setup.html?userId=${req.user.id}&qr=${encodeURIComponent(qr)}`);
-        });
-      });
+    if (!req.user || !req.user.id) {
+      return res.redirect("/login.html?error=oauth");
     }
+    
+    db.query("SELECT * FROM users WHERE id = ?", [req.user.id], (err, users) => {
+      if (err || users.length === 0) {
+        return res.redirect("/login.html?error=oauth");
+      }
+      
+      const user = users[0];
+      const qrCode = require("qrcode");
+      const speakeasy = require("speakeasy");
+      
+      if (user.twofa_secret === "TEMP" || !user.twofa_secret) {
+        const secret = speakeasy.generateSecret({ 
+          length: 20,
+          name: user.email
+        });
+        
+        db.query("UPDATE users SET role = ?, twofa_secret = ? WHERE id = ?", 
+          [req.session.googleRole || "user", secret.base32, user.id], (err) => {
+          req.session.googleRole = null;
+          
+          qrCode.toDataURL(secret.otpauth_url).then(qr => {
+            res.redirect(`/google-setup.html?userId=${user.id}&qr=${encodeURIComponent(qr)}`);
+          });
+        });
+      } else {
+        res.redirect(`/verify-2fa.html?userId=${user.id}&google=true`);
+      }
+    });
   }
 );
 router.post("/login", authController.login);
 router.post("/verify-2fa", authController.verify2FA);
 router.get("/profile", authMiddleware, authController.getProfile);
 router.post("/logout", (req, res) => {
+  req.session.destroy();
   res.json({ message: "Logout successful" });
 });
 

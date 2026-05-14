@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Register with GitHub</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="container">
+    <h2>Select Your Role</h2>
+    <form id="roleForm">
+      <div class="form-group">
+        <label for="role">Choose your role:</label>
+        <select id="role">
+          <option value="user">User</option>
+          <option value="manager">Manager</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+      <button type="submit" style="background: #333;">Continue with GitHub</button>
+    </form>
+    <p class="link"><a href="register.html">Register with Email</a></p>
+  </div>
+  <script>
+    document.getElementById("roleForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const role = document.getElementById("role").value;
+      window.location.href = `/api/auth/github/register?role=${role}`;
+    });
+  </script>
+</body>
+</html>

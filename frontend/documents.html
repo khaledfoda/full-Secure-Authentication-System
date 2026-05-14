@@ -12,6 +12,7 @@
     <table>
       <thead>
         <tr>
+          <th>ID</th>
           <th>Filename</th>
           <th>Uploaded</th>
           <th>Actions</th>
@@ -19,8 +20,8 @@
       </thead>
       <tbody id="documentsList"></tbody>
     </table>
-    <div class="buttons-row">
-      <button onclick="window.location.href='upload.html'">Upload New</button>
+    <div id="verifyResult" style="margin: 20px 0;"></div>
+    <div class="buttons-row" id="buttonsContainer">
       <button onclick="window.location.href='verify.html'">Verify Documents</button>
       <button class="secondary" id="dashboardBtn">Dashboard</button>
       <button class="back-btn" onclick="window.location.href='login.html'">Logout</button>
@@ -40,6 +41,13 @@
       window.location.href = getDashboardUrl(role);
     };
 
+    if (role === "user") {
+      const uploadBtn = document.createElement("button");
+      uploadBtn.textContent = "Upload New";
+      uploadBtn.onclick = () => window.location.href = "upload.html";
+      document.getElementById("buttonsContainer").prepend(uploadBtn);
+    }
+
     async function loadDocuments() {
       const response = await fetch("/api/documents", {
         headers: { "Authorization": `Bearer ${token}` }
@@ -47,16 +55,48 @@
       const data = await response.json();
       
       const tbody = document.getElementById("documentsList");
+      
       tbody.innerHTML = data.documents.map(doc => `
         <tr>
+          <td>${doc.id}</td>
           <td>${doc.original_name}</td>
           <td>${new Date(doc.uploaded_at).toLocaleString()}</td>
           <td>
-            <button class="btn-edit" onclick="download(${doc.id})">Download</button>
+            <button class="btn-edit" onclick="verifyDoc(${doc.id})">Verify</button>
+            ${role !== "manager" ? `<button class="btn-edit" onclick="download(${doc.id})">Download</button>` : ""}
             <button class="btn-delete" onclick="deleteDoc(${doc.id})">Delete</button>
           </td>
         </tr>
       `).join("");
+    }
+
+    async function verifyDoc(id) {
+      const response = await fetch(`/api/documents/verify/${id}`, {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      const data = await response.json();
+      
+      if (!response.ok) {
+        document.getElementById("verifyResult").innerHTML = `<p style="color: red;">${data.message}</p>`;
+        return;
+      }
+      
+      document.getElementById("verifyResult").innerHTML = `
+        <div class="user-info">
+          <h3>Document: ${data.document.original_name}</h3>
+          <p><strong>Uploaded by:</strong> ${data.document.user_name || "N/A"}</p>
+          <p><strong>Upload Date:</strong> ${new Date(data.document.uploaded_at).toLocaleString()}</p>
+          <hr style="margin: 15px 0;">
+          <h3>Integrity Check (SHA-256)</h3>
+          <p><strong>Hash Match:</strong> <span style="color: ${data.integrity.hashMatch ? 'green' : 'red'}">${data.integrity.hashMatch ? 'VALID' : 'INVALID'}</span></p>
+          <p><strong>Current Hash:</strong> <code style="word-break: break-all; font-size: 11px;">${data.integrity.currentHash}</code></p>
+          <p><strong>Stored Hash:</strong> <code style="word-break: break-all; font-size: 11px;">${data.integrity.storedHash}</code></p>
+          <hr style="margin: 15px 0;">
+          <h3>Digital Signature</h3>
+          <p><strong>Signature Valid:</strong> <span style="color: ${data.signature.valid ? 'green' : 'red'}">${data.signature.valid ? 'VALID' : 'INVALID'}</span></p>
+          <button onclick="document.getElementById('verifyResult').innerHTML=''" style="margin-top:10px;">Close</button>
+        </div>
+      `;
     }
 
     async function download(id) {
