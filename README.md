@@ -204,6 +204,9 @@ For Wireshark MITM Demo:
 |----------|------|--------------|
 | HTTP | 3000 | Plain text (password visible) |
 | HTTPS | 3001 | Encrypted (secure) |
+
+
+
 HTTPS:
 ![alt text](image-1.png)
 HTTP:
