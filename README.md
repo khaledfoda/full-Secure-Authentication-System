@@ -204,11 +204,7 @@ For Wireshark MITM Demo:
 |----------|------|--------------|
 | HTTP | 3000 | Plain text (password visible) |
 | HTTPS | 3001 | Encrypted (secure) |
-
-## 📝 License
-
-MIT License
-
-## 👨‍💻 Author
-
-Created for Data Integrity and Authentication course project.
+HTTPS:
+![alt text](image-1.png)
+HTTP:
+![alt text](image-2.png)
