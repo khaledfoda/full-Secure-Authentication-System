@@ -3,35 +3,161 @@
 <head>
   <title>User Management</title>
   <link rel="stylesheet" href="css/style.css">
+  <style>
+    .user-card {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 16px;
+      box-shadow: var(--card-shadow);
+      transition: all 0.3s;
+    }
+    .user-card:hover {
+      box-shadow: var(--card-shadow-hover);
+      transform: translateY(-2px);
+    }
+    .user-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .user-card-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .user-avatar-sm {
+      width: 48px;
+      height: 48px;
+      background: var(--gradient);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 18px;
+      font-weight: 700;
+    }
+    .user-card-info h4 {
+      margin: 0 0 4px;
+      color: var(--text-dark);
+      font-size: 16px;
+    }
+    .user-card-info p {
+      margin: 0;
+      color: var(--text-light);
+      font-size: 13px;
+    }
+    .user-card-actions {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+    .user-card-body {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+    }
+    .form-group-inline {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+    .form-group-inline label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+      color: var(--text-light);
+    }
+    .editable-input {
+      border: 2px solid var(--border);
+      padding: 12px 14px;
+      border-radius: 10px;
+      font-size: 14px;
+      transition: all 0.3s;
+      width: 100%;
+    }
+    .editable-input:hover {
+      border-color: #ccc;
+    }
+    .editable-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(17, 153, 142, 0.1);
+    }
+    .role-select {
+      width: 100%;
+      padding: 12px 40px 12px 14px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      font-size: 14px;
+      background: white url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") no-repeat right 14px center;
+      background-size: 18px;
+      cursor: pointer;
+      transition: all 0.3s;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+    .role-select:hover {
+      border-color: var(--primary);
+    }
+    .role-select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(17, 153, 142, 0.1);
+    }
+    .save-btn {
+      background: var(--primary);
+      padding: 10px 20px;
+      font-size: 13px;
+    }
+    .save-btn:hover {
+      background: var(--primary-dark);
+    }
+    .search-box {
+      margin-bottom: 24px;
+    }
+    .search-box input {
+      padding: 16px 20px 16px 50px;
+      font-size: 15px;
+    }
+  </style>
 </head>
 <body>
   <div class="dashboard-container">
     <div class="dashboard-header">
       <h2>User Management</h2>
+      <p>Manage system users and their roles</p>
     </div>
     
-    <table>
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Name</th>
-          <th>Email</th>
-          <th>Role</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody id="usersList"></tbody>
-    </table>
+    <div class="search-box">
+      <div class="input-wrapper">
+        <input type="text" id="searchInput" placeholder="Search users by name or email...">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+      </div>
+    </div>
+    
+    <div class="action-bar">
+      <h3>All Users</h3>
+      <span id="userCount" style="color: var(--text-light); font-size: 14px;"></span>
+    </div>
+    
+    <div id="usersList"></div>
     
     <div class="buttons-row">
       <button class="secondary" id="dashboardBtn">Dashboard</button>
-      <button class="back-btn" onclick="window.location.href='login.html'">Logout</button>
+      <button class="secondary" onclick="logout()">Logout</button>
     </div>
   </div>
 
   <script>
     const token = localStorage.getItem("token");
     const role = localStorage.getItem("role");
+    let allUsers = [];
     
     if (!token || role !== "admin") {
       window.location.href = "login.html";
@@ -48,23 +174,69 @@
       });
       const data = await res.json();
       
-      document.getElementById("usersList").innerHTML = data.users.map(u => `
-        <tr>
-          <td>${u.id}</td>
-          <td><input type="text" id="name-${u.id}" value="${u.name}" onchange="updateField(${u.id}, 'name', this.value)"></td>
-          <td><input type="email" id="email-${u.id}" value="${u.email}" onchange="updateField(${u.id}, 'email', this.value)"></td>
-          <td>
-            <select id="role-${u.id}" onchange="changeRole(${u.id}, this.value, '${u.role}')">
-              <option value="user" ${u.role === 'user' ? 'selected' : ''}>User</option>
-              <option value="manager" ${u.role === 'manager' ? 'selected' : ''}>Manager</option>
-              <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Admin</option>
-            </select>
-          </td>
-          <td>
-            <button class="btn-delete" onclick="deleteUser(${u.id})">Delete</button>
-          </td>
-        </tr>
-      `).join("");
+      allUsers = data.users;
+      filterUsers();
+    }
+    
+    function filterUsers() {
+      const searchTerm = document.getElementById("searchInput").value.toLowerCase();
+      const filteredUsers = allUsers.filter(u => 
+        u.name.toLowerCase().includes(searchTerm) || 
+        u.email.toLowerCase().includes(searchTerm)
+      );
+      renderUsers(filteredUsers);
+    }
+    
+    document.getElementById("searchInput").addEventListener("input", filterUsers);
+    
+    function getRoleBadgeHtml(role) {
+      return `<span class="role-badge">${role.toUpperCase()}</span>`;
+    }
+
+    function renderUsers(users) {
+      document.getElementById("userCount").textContent = `${users.length} user(s)`;
+      
+      document.getElementById("usersList").innerHTML = users.length === 0
+        ? `<div style="text-align: center; padding: 60px; color: var(--text-light);">No users found</div>`
+        : users.map(u => `
+          <div class="user-card">
+            <div class="user-card-header">
+              <div class="user-card-left">
+                <div class="user-avatar-sm">${u.name.charAt(0).toUpperCase()}</div>
+                <div class="user-card-info">
+                  <h4>${u.name}</h4>
+                  <p>ID: ${u.id}</p>
+                </div>
+              </div>
+              <div class="user-card-actions">
+                ${getRoleBadgeHtml(u.role)}
+                <button class="btn-delete" onclick="deleteUser(${u.id})">Delete</button>
+              </div>
+            </div>
+            <div class="user-card-body">
+              <div class="form-group-inline">
+                <label>Full Name</label>
+                <input type="text" class="editable-input" id="name-${u.id}" value="${u.name}">
+              </div>
+              <div class="form-group-inline">
+                <label>Email Address</label>
+                <input type="email" class="editable-input" id="email-${u.id}" value="${u.email}">
+              </div>
+              <div class="form-group-inline">
+                <label>Role</label>
+                <select class="role-select" id="role-${u.id}">
+                  <option value="user" ${u.role === 'user' ? 'selected' : ''}>User</option>
+                  <option value="manager" ${u.role === 'manager' ? 'selected' : ''}>Manager</option>
+                  <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Admin</option>
+                </select>
+              </div>
+              <div class="form-group-inline" style="justify-content: flex-end; align-self: flex-end;">
+                <label>&nbsp;</label>
+                <button class="save-btn" onclick="saveUser(${u.id}, '${u.role}')">Save Changes</button>
+              </div>
+            </div>
+          </div>
+        `).join("");
     }
 
     async function updateField(id, field, value) {
@@ -81,13 +253,39 @@
         alert(data.message || "Failed to update");
         loadUsers();
       }
+      return res.ok;
+    }
+
+    async function saveUser(id, oldRole) {
+      const name = document.getElementById(`name-${id}`).value;
+      const email = document.getElementById(`email-${id}`).value;
+      const role = document.getElementById(`role-${id}`).value;
+
+      const nameChanged = name !== allUsers.find(u => u.id === id).name;
+      const emailChanged = email !== allUsers.find(u => u.id === id).email;
+      const roleChanged = role !== oldRole;
+
+      if (!nameChanged && !emailChanged && !roleChanged) {
+        alert("No changes to save");
+        return;
+      }
+
+      if (nameChanged) {
+        await updateField(id, 'name', name);
+      }
+      if (emailChanged) {
+        await updateField(id, 'email', email);
+      }
+      if (roleChanged) {
+        await changeRole(id, role, oldRole);
+        return;
+      }
+
+      alert("Changes saved successfully!");
+      loadUsers();
     }
 
     async function changeRole(id, newRole, oldRole) {
-      if (!confirm(`Change role from "${oldRole}" to "${newRole}"?`)) {
-        loadUsers();
-        return;
-      }
       const res = await fetch(`/api/auth/admin/users/${id}/role`, {
         method: "PUT",
         headers: {
@@ -101,17 +299,25 @@
         alert("Role updated successfully!");
       } else {
         alert(data.message || "Failed to update role");
-        loadUsers();
       }
+      loadUsers();
     }
 
     async function deleteUser(id) {
-      if (!confirm("Delete this user?")) return;
+      if (!confirm("Are you sure you want to delete this user?")) return;
       await fetch(`/api/auth/admin/users/${id}`, {
         method: "DELETE",
         headers: { "Authorization": "Bearer " + token }
       });
       loadUsers();
+    }
+
+    function logout() {
+      localStorage.removeItem("token");
+      localStorage.removeItem("userId");
+      localStorage.removeItem("role");
+      localStorage.removeItem("name");
+      window.location.href = "login.html";
     }
 
     loadUsers();

@@ -3,18 +3,85 @@
 <head>
   <title>Profile</title>
   <link rel="stylesheet" href="css/style.css">
+  <style>
+    .profile-header {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+    .profile-avatar {
+      width: 80px;
+      height: 80px;
+      background: var(--gradient);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 32px;
+      font-weight: 700;
+    }
+    .profile-info h1 {
+      margin-bottom: 4px;
+      font-size: 28px;
+    }
+    .profile-info p {
+      color: var(--text-light);
+    }
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-top: 24px;
+    }
+    .info-card {
+      background: var(--bg-light);
+      padding: 20px;
+      border-radius: 12px;
+      text-align: center;
+    }
+    .info-card label {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+    .info-card span {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-dark);
+    }
+  </style>
 </head>
 <body>
   <div class="dashboard-container">
     <div class="dashboard-header">
-      <h2>Profile</h2>
+      <div class="profile-header">
+        <div class="profile-avatar" id="avatar">P</div>
+        <div class="profile-info">
+          <h1 id="name">Profile</h1>
+          <p id="email"></p>
+        </div>
+      </div>
     </div>
     
-    <div id="profileData" class="user-info"></div>
+    <div class="info-grid">
+      <div class="info-card">
+        <label>User ID</label>
+        <span id="userId">-</span>
+      </div>
+      <div class="info-card">
+        <label>Role</label>
+        <span class="role-badge" id="userRole">-</span>
+      </div>
+    </div>
     
-    <div class="buttons-row">
-      <button id="dashboardBtn">Dashboard</button>
-      <button class="back-btn" onclick="logout()">Logout</button>
+    <div id="profileData" class="user-info" style="margin-top: 24px;"></div>
+    
+    <div class="buttons-row" style="margin-top: 32px;">
+      <button class="secondary" id="dashboardBtn">Dashboard</button>
+      <button class="secondary" onclick="logout()">Logout</button>
     </div>
   </div>
 
@@ -38,18 +105,20 @@
         return;
       }
       
-      document.getElementById("profileData").innerHTML = `
-        <p><strong>ID:</strong> ${data.user.id}</p>
-        <p><strong>Name:</strong> ${data.user.name}</p>
-        <p><strong>Email:</strong> ${data.user.email}</p>
-        <p><strong>Role:</strong> ${data.user.role}</p>
-      `;
+      document.getElementById("name").textContent = data.user.name;
+      document.getElementById("email").textContent = data.user.email;
+      document.getElementById("userId").textContent = data.user.id;
+      document.getElementById("userRole").textContent = data.user.role.toUpperCase();
+      document.getElementById("avatar").textContent = data.user.name.charAt(0).toUpperCase();
+      
+      localStorage.setItem("name", data.user.name);
     }
 
     function logout() {
       localStorage.removeItem("token");
       localStorage.removeItem("userId");
       localStorage.removeItem("role");
+      localStorage.removeItem("name");
       window.location.href = "login.html";
     }
 

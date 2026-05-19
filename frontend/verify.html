@@ -3,20 +3,41 @@
 <head>
   <title>Verify Document</title>
   <link rel="stylesheet" href="css/style.css">
+  <style>
+    .verify-box {
+      background: var(--bg-light);
+      padding: 32px;
+      border-radius: 16px;
+      margin-bottom: 24px;
+      text-align: center;
+    }
+    .verify-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+    .form-group {
+      max-width: 400px;
+      margin: 0 auto 24px;
+    }
+  </style>
 </head>
 <body>
   <div class="dashboard-container">
     <div class="dashboard-header">
-      <h2>Verify Document Integrity</h2>
+      <h2>Verify Document</h2>
+      <p>Check document integrity and authenticity</p>
     </div>
     
-    <div class="form-group">
-      <label for="docId">Enter Document ID</label>
-      <input type="number" id="docId" placeholder="Document ID" style="padding: 15px; font-size: 16px;">
+    <div class="verify-box">
+      <div class="verify-icon">🔐</div>
+      <div class="form-group">
+        <label for="docId">Enter Document ID</label>
+        <input type="number" id="docId" placeholder="Document ID" style="padding: 18px; font-size: 18px; text-align: center;">
+      </div>
+      <button onclick="verifyDoc()" style="max-width: 300px;">Verify Document</button>
     </div>
-    <button onclick="verifyDoc()">Verify</button>
     
-    <div id="result" style="margin-top: 20px;"></div>
+    <div id="result" style="margin-top: 24px;"></div>
     <div class="buttons-row">
       <button class="secondary" id="dashboardBtn">Dashboard</button>
       <button class="back-btn" onclick="window.location.href='documents.html'">Back</button>
@@ -36,7 +57,7 @@
     async function verifyDoc() {
       const id = document.getElementById("docId").value;
       if (!id) {
-        document.getElementById("result").innerHTML = `<p style="color: red;">Please enter a document ID</p>`;
+        document.getElementById("result").innerHTML = `<p style="color: var(--danger); text-align: center;">Please enter a document ID</p>`;
         return;
       }
       
@@ -46,18 +67,15 @@
       const data = await response.json();
 
       if (!response.ok) {
-        document.getElementById("result").innerHTML = `<p style="color: red;">${data.message}</p>`;
+        document.getElementById("result").innerHTML = `<p style="color: var(--danger); text-align: center;">${data.message}</p>`;
         return;
       }
-
-      console.log("Document data:", data.document);
-      console.log("Current userId from localStorage:", localStorage.getItem("userId"));
 
       if (role === "user") {
         const docUserId = parseInt(data.document.user_id);
         const currentUserId = parseInt(localStorage.getItem("userId"));
         if (docUserId !== currentUserId) {
-          document.getElementById("result").innerHTML = `<p style="color: red; font-size: 18px;">You cannot verify this document because it doesn't belong to you!</p>`;
+          document.getElementById("result").innerHTML = `<p style="color: var(--danger); text-align: center; font-size: 18px;">You cannot verify this document because it doesn't belong to you!</p>`;
           return;
         }
       }
@@ -66,15 +84,17 @@
         <div class="user-info">
           <h3>Document: ${data.document.original_name}</h3>
           <p><strong>Uploaded by:</strong> ${data.document.user_name}</p>
-          <p><strong>Upload Date:</strong> ${new Date(data.document.uploaded_at).toLocaleString()}</p>
-          <hr style="margin: 15px 0;">
+          <p><strong>Upload Date:</strong> ${new Date(data.document.uploaded_at).toLocaleString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+          <hr style="margin: 20px 0; border: none; border-top: 1px solid var(--border);">
           <h3>Integrity Check (SHA-256)</h3>
-          <p><strong>Hash Match:</strong> <span style="color: ${data.integrity.hashMatch ? 'green' : 'red'}">${data.integrity.hashMatch ? 'VALID' : 'INVALID'}</span></p>
-          <p><strong>Current Hash:</strong> <code style="word-break: break-all;">${data.integrity.currentHash}</code></p>
-          <p><strong>Stored Hash:</strong> <code style="word-break: break-all;">${data.integrity.storedHash}</code></p>
-          <hr style="margin: 15px 0;">
+          <p><strong>Hash Match:</strong> <span style="color: ${data.integrity.hashMatch ? '#2ecc71' : 'var(--danger)'}">${data.integrity.hashMatch ? 'VALID ✓' : 'INVALID ✗'}</span></p>
+          <p><strong>Current Hash:</strong></p>
+          <code style="word-break: break-all; font-size: 11px; background: #f8f9fa; padding: 10px; display: block; border-radius: 8px;">${data.integrity.currentHash}</code>
+          <p style="margin-top: 12px;"><strong>Stored Hash:</strong></p>
+          <code style="word-break: break-all; font-size: 11px; background: #f8f9fa; padding: 10px; display: block; border-radius: 8px;">${data.integrity.storedHash}</code>
+          <hr style="margin: 20px 0; border: none; border-top: 1px solid var(--border);">
           <h3>Digital Signature</h3>
-          <p><strong>Signature Valid:</strong> <span style="color: ${data.signature.valid ? 'green' : 'red'}">${data.signature.valid ? 'VALID' : 'INVALID'}</span></p>
+          <p><strong>Signature Valid:</strong> <span style="color: ${data.signature.valid ? '#2ecc71' : 'var(--danger)'}">${data.signature.valid ? 'VALID ✓' : 'INVALID ✗'}</span></p>
         </div>
       `;
     }

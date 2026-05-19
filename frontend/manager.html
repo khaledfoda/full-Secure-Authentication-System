@@ -3,23 +3,99 @@
 <head>
   <title>Manager Dashboard</title>
   <link rel="stylesheet" href="css/style.css">
+  <style>
+    .user-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .user-avatar {
+      width: 64px;
+      height: 64px;
+      background: var(--gradient);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 24px;
+      font-weight: 700;
+    }
+    .user-details h1 {
+      margin-bottom: 4px;
+      font-size: 24px;
+    }
+    .nav-buttons {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin-top: 32px;
+    }
+    .nav-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px;
+      background: var(--bg-light);
+      border-radius: 16px;
+      text-decoration: none;
+      transition: all 0.3s;
+      border: 2px solid transparent;
+    }
+    .nav-btn:hover {
+      background: white;
+      border-color: var(--primary);
+      transform: translateY(-4px);
+      box-shadow: var(--card-shadow-hover);
+    }
+    .nav-btn svg {
+      width: 32px;
+      height: 32px;
+      color: var(--primary);
+      margin-bottom: 12px;
+    }
+    .nav-btn span {
+      color: var(--text-medium);
+      font-weight: 600;
+      font-size: 14px;
+    }
+  </style>
 </head>
 <body>
   <div class="dashboard-container">
     <div class="dashboard-header">
-      <h2>Manager Dashboard</h2>
+      <div class="user-header">
+        <div class="user-avatar" id="userAvatar">M</div>
+        <div class="user-details">
+          <h1>Manager Panel</h1>
+          <span class="role-badge" id="userRole">MANAGER</span>
+        </div>
+      </div>
+      <p style="margin-top: 16px; color: var(--text-light);">Document verification and management</p>
     </div>
     
     <div class="user-info">
       <p><strong>User ID:</strong> <span id="userData"></span></p>
-      <p><strong>Role:</strong> <span id="userRole"></span></p>
     </div>
     
-    <h3>Document Verification</h3>
-    <div class="buttons-row">
-      <button onclick="window.location.href='verify.html'">Verify Documents</button>
-      <button onclick="window.location.href='documents.html'">All Documents</button>
-      <button onclick="window.location.href='profile.html'">Profile</button>
+    <h3>Management Tools</h3>
+    <div class="nav-buttons">
+      <a href="verify.html" class="nav-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+        <span>Verify Documents</span>
+      </a>
+      <a href="documents.html" class="nav-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+        <span>All Documents</span>
+      </a>
+      <a href="profile.html" class="nav-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+        <span>My Profile</span>
+      </a>
+    </div>
+    
+    <div class="buttons-row" style="margin-top: 32px;">
       <button class="secondary" onclick="logout()">Logout</button>
     </div>
   </div>
@@ -28,18 +104,22 @@
   const token = localStorage.getItem("token");
   const userId = localStorage.getItem("userId");
   const role = localStorage.getItem("role");
+  const name = localStorage.getItem("name");
 
   if (!token || role !== "manager") {
     window.location.href = "login.html";
   } else {
     document.getElementById("userData").textContent = userId || "Not found";
-    document.getElementById("userRole").textContent = role;
+    if (name) {
+      document.getElementById("userAvatar").textContent = name.charAt(0).toUpperCase();
+    }
   }
 
   function logout() {
     localStorage.removeItem("token");
     localStorage.removeItem("userId");
     localStorage.removeItem("role");
+    localStorage.removeItem("name");
     window.location.href = "login.html";
   }
   </script>
