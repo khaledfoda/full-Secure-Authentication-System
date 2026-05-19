@@ -46,3 +46,13 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
   alert(result.message);
   document.getElementById("qr").src = result.qrCode;
 });
+
+document.getElementById("password").addEventListener("input", function() {
+  const password = this.value;
+  
+  document.getElementById("req-length").className = "requirement " + (password.length >= 8 ? "met" : "");
+  document.getElementById("req-upper").className = "requirement " + (/[A-Z]/.test(password) ? "met" : "");
+  document.getElementById("req-lower").className = "requirement " + (/[a-z]/.test(password) ? "met" : "");
+  document.getElementById("req-number").className = "requirement " + (/[0-9]/.test(password) ? "met" : "");
+  document.getElementById("req-special").className = "requirement " + (/[*\/@]/.test(password) ? "met" : "");
+});

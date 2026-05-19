@@ -64,7 +64,7 @@ if (fs.existsSync(keyPath) && fs.existsSync(certPath)) {
   https.createServer(sslOptions, app).listen(HTTPS_PORT, "0.0.0.0", () => {
     console.log(`HTTPS Server running on https://0.0.0.0:${HTTPS_PORT}`);
     console.log(`Access from this machine: https://localhost:${HTTPS_PORT}`);
-    console.log(`Access from network: https://192.168.1.11:${HTTPS_PORT}`);
+    console.log(`Access from network: https://192.168.141.133:${HTTPS_PORT}`);
   });
 } else {
   app.listen(HTTP_PORT, () => {

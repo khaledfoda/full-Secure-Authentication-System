@@ -3,16 +3,51 @@
 <head>
   <title>Upload Document</title>
   <link rel="stylesheet" href="css/style.css">
+  <style>
+    .upload-area {
+      border: 2px dashed #ccc;
+      border-radius: 10px;
+      padding: 40px;
+      text-align: center;
+      transition: all 0.3s;
+      cursor: pointer;
+      margin: 20px 0;
+    }
+    .upload-area:hover {
+      border-color: #11998e;
+      background: #f8fcfb;
+    }
+    .upload-icon {
+      font-size: 48px;
+      color: #11998e;
+      margin-bottom: 15px;
+    }
+    .upload-text {
+      color: #666;
+      margin-bottom: 10px;
+    }
+    .file-info {
+      color: #11998e;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+    input[type="file"] {
+      display: none;
+    }
+  </style>
 </head>
 <body>
   <div class="container">
     <h2>Upload Document</h2>
     <form id="uploadForm">
-      <div class="form-group">
-        <label for="file">Select File</label>
-        <input type="file" id="file" required>
+      <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+        <div class="upload-icon">⬆</div>
+        <div class="upload-text">Click to select a file or drag and drop here</div>
+        <div style="color: #999; font-size: 12px;">Supported: PDF, DOCX, PPT, PPTX (Max 5MB)</div>
+        <div id="fileName" class="file-info" style="display: none;"></div>
       </div>
-      <button type="submit" id="submitBtn">Upload & Encrypt</button>
+      <input type="file" id="fileInput" accept=".pdf,.docx,.ppt,.pptx">
+      <button type="submit" id="submitBtn" style="margin-top: 20px; width: 100%;">Upload & Encrypt</button>
     </form>
     <div id="result" style="margin-top: 20px;"></div>
     <p class="link">
@@ -29,10 +64,19 @@
     const dashboards = { admin: "admin.html", manager: "manager.html", user: "user.html" };
     document.getElementById("dashboardLink").href = dashboards[role] || "user.html";
 
+    const fileInput = document.getElementById("fileInput");
+    const fileName = document.getElementById("fileName");
+
+    fileInput.addEventListener("change", function() {
+      if (this.files && this.files[0]) {
+        fileName.textContent = "Selected: " + this.files[0].name;
+        fileName.style.display = "block";
+      }
+    });
+
     document.getElementById("uploadForm").addEventListener("submit", async (e) => {
       e.preventDefault();
       
-      const fileInput = document.getElementById("file");
       const maxSize = 5 * 1024 * 1024;
       
       if (!fileInput.files[0]) {
@@ -82,6 +126,7 @@
             </div>
           `;
           fileInput.value = "";
+          fileName.style.display = "none";
         }
       } catch (error) {
         document.getElementById("result").innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
